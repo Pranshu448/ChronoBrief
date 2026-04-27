@@ -1,0 +1,145 @@
+.app-shell {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  min-height: 100vh;
+}
+
+.hero-panel,
+.dashboard-panel {
+  padding: 72px 56px;
+}
+
+.hero-panel {
+  background:
+    radial-gradient(circle at top left, rgba(210, 240, 228, 0.9), transparent 40%),
+    linear-gradient(135deg, rgba(245, 246, 240, 0.98), rgba(233, 238, 255, 0.94));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 28px;
+}
+
+.dashboard-panel {
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(18px);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.lede {
+  max-width: 40rem;
+  font-size: 1.08rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.primary-button,
+.secondary-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.95rem 1.4rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.primary-button {
+  color: #f7f8f2;
+  background: linear-gradient(135deg, #163329, #285e48);
+  box-shadow: 0 18px 32px rgba(22, 51, 41, 0.2);
+}
+
+.secondary-button {
+  color: var(--text-h);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(18, 28, 24, 0.08);
+}
+
+.primary-button:hover,
+.secondary-button:hover {
+  transform: translateY(-1px);
+}
+
+.status-card,
+.empty-state,
+.dashboard-message,
+.dashboard-panel {
+  border-radius: 28px;
+}
+
+.status-card,
+.empty-state,
+.dashboard-message {
+  border: 1px solid rgba(18, 28, 24, 0.08);
+  background: rgba(255, 255, 255, 0.68);
+  padding: 24px;
+}
+
+.status-label,
+.status-copy,
+.status-error,
+.panel-header h2 {
+  margin: 0;
+}
+
+.status-label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.status-copy {
+  margin-top: 10px;
+  color: var(--text-h);
+}
+
+.status-error {
+  margin-top: 10px;
+  color: #b23a28;
+}
+
+.panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dashboard-message p {
+  color: var(--text-h);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+@media (max-width: 980px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-panel {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .hero-panel,
+  .dashboard-panel {
+    padding: 40px 20px;
+  }
+}

@@ -1,0 +1,64 @@
+:root {
+  --text: #56615d;
+  --text-h: #15211d;
+  --text-muted: #75837d;
+  --bg: #f4f1e8;
+  --border: rgba(21, 33, 29, 0.1);
+  --accent: #285e48;
+  --sans: 'Sora', 'Segoe UI', sans-serif;
+  --heading: 'Fraunces', Georgia, serif;
+  --mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+
+  font: 18px/1.5 var(--sans);
+  letter-spacing: 0.18px;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background:
+    radial-gradient(circle at top left, rgba(206, 237, 225, 0.7), transparent 28%),
+    linear-gradient(180deg, #f7f3eb 0%, #eef1e7 100%);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(3rem, 6vw, 5.3rem);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+}
+
+h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
