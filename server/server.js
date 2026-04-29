@@ -6,6 +6,7 @@ const passport = require("./config/passport");
 const cors = require("cors");
 
 const app = express();
+const PORT = process.env.PORT || 8000;
 
 // 🔹 Middleware
 app.use(cors({
@@ -23,15 +24,26 @@ const connectDB = async () => {
       throw new Error("MONGO_URI is missing in .env");
     }
 
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 10000
+    });
     console.log("✅ MongoDB connected");
   } catch (err) {
+    const atlasHint =
+      "Check that your MongoDB Atlas cluster allows this machine's IP, the database user credentials are correct, and DNS/network access to Atlas is available.";
     console.error("❌ DB Connection Error:", err.message);
+    console.error("ℹ️  Troubleshooting:", atlasHint);
     process.exit(1); // stop server if DB fails
   }
 };
 
-connectDB();
+const startServer = async () => {
+  await connectDB();
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+};
 
 // 🔹 Routes
 app.use("/api/auth", require("./routes/authRoutes"));
@@ -53,8 +65,4 @@ app.use((err, req, res, next) => {
 });
 
 // 🔹 Server start
-const PORT = process.env.PORT || 8000;
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+startServer();

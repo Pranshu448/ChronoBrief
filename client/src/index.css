@@ -1,13 +1,13 @@
 :root {
-  --text: #56615d;
-  --text-h: #15211d;
-  --text-muted: #75837d;
-  --bg: #f4f1e8;
-  --border: rgba(21, 33, 29, 0.1);
-  --accent: #285e48;
+  --text: #d7dbe7;
+  --text-h: #f2f4f8;
+  --text-muted: #8d96ab;
+  --bg: #000000;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #9d87ff;
   --sans: 'Sora', 'Segoe UI', sans-serif;
   --heading: 'Fraunces', Georgia, serif;
-  --mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+  --mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   font: 18px/1.5 var(--sans);
   letter-spacing: 0.18px;
@@ -25,8 +25,9 @@
 
 html {
   background:
-    radial-gradient(circle at top left, rgba(206, 237, 225, 0.7), transparent 28%),
-    linear-gradient(180deg, #f7f3eb 0%, #eef1e7 100%);
+    radial-gradient(circle at top left, rgba(58, 90, 255, 0.1), transparent 18%),
+    radial-gradient(circle at top right, rgba(196, 88, 255, 0.08), transparent 16%),
+    linear-gradient(180deg, #020202 0%, #000000 100%);
 }
 
 body {
