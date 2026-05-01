@@ -7,22 +7,40 @@ const HERO_HEADLINE_PREFIX = 'Turn scattered links into one '
 const HERO_HEADLINE_HIGHLIGHT = 'daily brief'
 const HERO_HEADLINE_SUFFIX = ' that actually helps you start the day.'
 const HERO_HEADLINE = `${HERO_HEADLINE_PREFIX}${HERO_HEADLINE_HIGHLIGHT}${HERO_HEADLINE_SUFFIX}`
+const BRIEF_ROUTE = '/brief'
+const DEFAULT_BRIEF_TIME = '08:00'
 
 const readTokenFromStorage = () => localStorage.getItem(TOKEN_STORAGE_KEY) || ''
+const getBriefDateLabel = () =>
+  new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric'
+  }).format(new Date())
+const getSavedLinksStorageKey = (email) => `chronos_saved_links:${email}`
+const getBriefTimeStorageKey = (email) => `chronos_brief_time:${email}`
+const readSavedLinks = (email) => {
+  try {
+    return JSON.parse(localStorage.getItem(getSavedLinksStorageKey(email)) || '[]')
+  } catch {
+    return []
+  }
+}
+const readBriefTime = (email) => localStorage.getItem(getBriefTimeStorageKey(email)) || DEFAULT_BRIEF_TIME
 
 const featureCards = [
   {
     tone: 'wide',
     eyebrow: 'Signal intake',
     title: 'Track the links that matter',
-    copy: 'Add creators, newsletters, threads, research pages, and articles you want Chronos to watch every day.',
+    copy: 'Add creators, newsletters, threads, research pages, and articles you want ChronoBrief to watch every day.',
     pills: ['Newsletters', 'Research', 'Threads', 'Articles', 'Creators']
   },
   {
     tone: 'brief',
     eyebrow: 'Daily clarity',
     title: 'Wake up to one clear brief',
-    copy: 'Chronos turns scattered updates into a focused summary so you do not lose time checking every source manually.'
+    copy: 'ChronoBrief turns scattered updates into a focused summary so you do not lose time checking every source manually.'
   },
   {
     tone: 'premium',
@@ -37,7 +55,7 @@ const workflowCards = [
     label: 'Step 01',
     display: 'Capture.',
     title: 'Collect from your saved sources',
-    copy: 'Chronos watches the links you add and checks for meaningful changes and fresh posts.'
+    copy: 'ChronoBrief watches the links you add and checks for meaningful changes and fresh posts.'
   },
   {
     label: 'Step 02',
@@ -55,7 +73,7 @@ const workflowCards = [
 
 const workflowLogs = [
   '> Fetching 15 saved links from MongoDB...',
-  '> Chronos AI agent initializing...',
+  '> ChronoBrief AI agent initializing...',
   '> Condensing content...',
   '> Email digest successfully dispatched.'
 ]
@@ -86,8 +104,8 @@ const plans = [
 
 const faqs = [
   {
-    question: 'What does Chronos do?',
-    answer: 'Chronos watches the links you care about and turns fresh changes into a daily briefing.'
+    question: 'What does ChronoBrief do?',
+    answer: 'ChronoBrief watches the links you care about and turns fresh changes into a daily briefing.'
   },
   {
     question: 'Why would I choose Premium?',
@@ -99,10 +117,51 @@ const faqs = [
   }
 ]
 
+const todaysBrief = {
+  edition: 'Today\'s brief',
+  title: 'A quieter way to catch up',
+  dek: 'ChronoBrief scanned your saved sources overnight and turned the meaningful changes into a clean morning read.',
+  intro:
+    'Good morning. Here is the signal worth carrying into the day: a few meaningful shifts, a few themes gaining momentum, and the links that deserve attention before everything starts to fragment across tabs.',
+  sections: [
+    {
+      eyebrow: 'Top line',
+      heading: 'The conversation is narrowing around quality, not volume.',
+      body:
+        'Across newsletters, research notes, and creator feeds, the biggest movement is not more posting. It is better filtering. The strongest sources are packaging fewer updates with more conviction, which means your brief can stay short without becoming shallow.'
+    },
+    {
+      eyebrow: 'What changed',
+      heading: 'Three saved sources moved from background noise to actual relevance.',
+      body:
+        'Two long-followed newsletters published unusually concrete guidance this morning, while a creator thread reframed the same topic from the operator side. Together, they point in the same direction, which is exactly the kind of overlap ChronoBrief elevates instead of leaving scattered.'
+    },
+    {
+      eyebrow: 'Why it matters',
+      heading: 'The useful edge is not seeing more links. It is seeing the pattern sooner.',
+      body:
+        'When the same idea starts surfacing independently across different saved sources, it usually means the market has moved beyond speculation. ChronoBrief treats that overlap as a stronger signal, so your morning brief feels editorial instead of merely aggregated.'
+    }
+  ],
+  watchlist: [
+    'A cluster of AI productivity writers is shifting from tool roundups toward opinionated workflow playbooks.',
+    'Premium-only research notes are showing up earlier in the briefing because they are generating stronger cross-source agreement.',
+    'Founder threads are becoming more useful when paired with slower, better-written analysis from newsletters.'
+  ],
+  closing:
+    'That is the read for today. If you want to change what tomorrow looks like, open the profile menu to manage saved links or adjust how ChronoBrief builds your brief.'
+}
+
 function App() {
   const [token, setToken] = useState(() => readTokenFromStorage())
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(readTokenFromStorage()))
-  const [status, setStatus] = useState('Connect Google to start your daily Chronos brief.')
+  const [profile, setProfile] = useState(null)
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [isBriefSettingsOpen, setIsBriefSettingsOpen] = useState(false)
+  const [savedLinks, setSavedLinks] = useState([])
+  const [newLink, setNewLink] = useState('')
+  const [briefDeliveryTime, setBriefDeliveryTime] = useState(DEFAULT_BRIEF_TIME)
+  const [status, setStatus] = useState('Connect Google to start your daily ChronoBrief brief.')
   const [error, setError] = useState('')
   const [typedHeadline, setTypedHeadline] = useState('')
   const [terminalLines, setTerminalLines] = useState(() => workflowLogs.map(() => ''))
@@ -111,6 +170,8 @@ function App() {
   const [typedFaqAnswer, setTypedFaqAnswer] = useState('')
   const featurePillCloudRef = useRef(null)
   const featurePillRefs = useRef([])
+  const profileMenuRef = useRef(null)
+  const briefSettingsRef = useRef(null)
 
   useEffect(() => {
     const existingScript = document.querySelector('script[data-spline-viewer="true"]')
@@ -140,7 +201,7 @@ function App() {
     setStatus('Login successful. Loading your workspace...')
     setError('')
 
-    window.history.replaceState({}, '', '/dashboard')
+    window.history.replaceState({}, '', BRIEF_ROUTE)
   }, [])
 
   useEffect(() => {
@@ -204,11 +265,14 @@ function App() {
           throw new Error(data.message || 'Unable to load profile')
         }
 
+        setProfile(data.user)
         setIsLoggedIn(true)
-        setStatus('You are logged in and on your dashboard.')
+        setStatus('Your brief is ready.')
+        window.history.replaceState({}, '', BRIEF_ROUTE)
       } catch (loadError) {
         localStorage.removeItem(TOKEN_STORAGE_KEY)
         setToken('')
+        setProfile(null)
         setIsLoggedIn(false)
         setError(loadError.message)
         setStatus('Your session expired. Please sign in again.')
@@ -387,6 +451,63 @@ function App() {
     return () => window.clearTimeout(timeoutId)
   }, [activeFaqIndex])
 
+  useEffect(() => {
+    if (!isProfileMenuOpen) {
+      return undefined
+    }
+
+    const handlePointerDown = (event) => {
+      if (!profileMenuRef.current?.contains(event.target)) {
+        setIsProfileMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [isProfileMenuOpen])
+
+  useEffect(() => {
+    if (!profile?.email) {
+      return
+    }
+
+    setSavedLinks(readSavedLinks(profile.email))
+    setBriefDeliveryTime(readBriefTime(profile.email))
+  }, [profile?.email])
+
+  useEffect(() => {
+    if (!profile?.email) {
+      return
+    }
+
+    localStorage.setItem(getSavedLinksStorageKey(profile.email), JSON.stringify(savedLinks))
+  }, [profile?.email, savedLinks])
+
+  useEffect(() => {
+    if (!profile?.email) {
+      return
+    }
+
+    localStorage.setItem(getBriefTimeStorageKey(profile.email), briefDeliveryTime)
+  }, [briefDeliveryTime, profile?.email])
+
+  useEffect(() => {
+    if (!isBriefSettingsOpen) {
+      return undefined
+    }
+
+    const handlePointerDown = (event) => {
+      if (!briefSettingsRef.current?.contains(event.target)) {
+        setIsBriefSettingsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handlePointerDown)
+
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [isBriefSettingsOpen])
+
   const handleLogin = () => {
     window.location.href = `${API_BASE_URL}/api/auth/google`
   }
@@ -394,10 +515,226 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem(TOKEN_STORAGE_KEY)
     setToken('')
+    setProfile(null)
     setIsLoggedIn(false)
+    setIsProfileMenuOpen(false)
+    setIsBriefSettingsOpen(false)
     setError('')
     setStatus('You have been logged out.')
     window.history.replaceState({}, '', '/')
+  }
+
+  const handleAddLink = (event) => {
+    event.preventDefault()
+
+    const trimmedLink = newLink.trim()
+
+    if (!trimmedLink || savedLinks.includes(trimmedLink)) {
+      return
+    }
+
+    setSavedLinks((prev) => [trimmedLink, ...prev])
+    setNewLink('')
+  }
+
+  const handleRemoveLink = (linkToRemove) => {
+    setSavedLinks((prev) => prev.filter((link) => link !== linkToRemove))
+  }
+
+  const userInitial = profile?.name?.trim()?.charAt(0)?.toUpperCase() || 'C'
+  const briefDateLabel = getBriefDateLabel()
+  const hasSavedLinks = savedLinks.length > 0
+
+  if (token && !profile && !error) {
+    return (
+      <main className="brief-page-shell">
+        <div className="page-glow page-glow-top"></div>
+        <div className="page-glow page-glow-bottom"></div>
+        <section className="brief-page brief-page-loading">
+          <header className="brief-topbar">
+            <div className="brief-brand-lockup">
+              <div className="brand-mark"></div>
+              <span>ChronoBrief</span>
+            </div>
+          </header>
+          <div className="brief-loading-copy">{status || 'Loading today’s brief...'}</div>
+        </section>
+      </main>
+    )
+  }
+
+  if (isLoggedIn && profile) {
+    return (
+      <main className="brief-page-shell">
+        <div className="page-glow page-glow-top"></div>
+        <div className="page-glow page-glow-bottom"></div>
+
+        <section className="brief-page">
+          <header className="brief-topbar">
+            <div className="brief-brand-lockup">
+              <div className="brand-mark"></div>
+              <span>ChronoBrief</span>
+            </div>
+
+            <div className="brief-profile-shell" ref={profileMenuRef}>
+              <button
+                type="button"
+                className="brief-avatar-button"
+                onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                aria-expanded={isProfileMenuOpen}
+                aria-label="Open profile menu"
+              >
+                {profile.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt={profile.name} className="brief-avatar-image" />
+                ) : (
+                  <span>{userInitial}</span>
+                )}
+              </button>
+
+              {isProfileMenuOpen ? (
+                <div className="brief-profile-menu">
+                  <div className="brief-profile-meta">
+                    <strong>{profile.name}</strong>
+                    <span>{profile.email}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="brief-menu-item"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false)
+                      setIsBriefSettingsOpen(true)
+                    }}
+                  >
+                    Add saved links
+                  </button>
+                  <button
+                    type="button"
+                    className="brief-menu-item"
+                    onClick={() => {
+                      setIsProfileMenuOpen(false)
+                      setIsBriefSettingsOpen(true)
+                    }}
+                  >
+                    Brief settings
+                  </button>
+                  <button type="button" className="brief-menu-item" onClick={handleLogout}>
+                    Sign out
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </header>
+
+          <article className="brief-reader">
+            <header className="brief-reader-header">
+              <span className="section-kicker brief-kicker">{todaysBrief.edition}</span>
+              <h1 className="brief-title">{todaysBrief.title}</h1>
+            </header>
+
+            <section className="brief-editor-shell" aria-label="Today&apos;s brief editor">
+              <div className="brief-editor-topbar">
+                <span>{briefDateLabel}</span>
+                <button type="button" className="brief-inline-action" onClick={() => setIsBriefSettingsOpen(true)}>
+                  Settings
+                </button>
+              </div>
+
+              <div className="brief-editor" role="document" tabIndex={0}>
+                <p className="brief-editor-dek">{todaysBrief.dek}</p>
+                <p>{todaysBrief.intro}</p>
+
+                {todaysBrief.sections.map((section) => (
+                  <section key={section.heading} className="brief-editor-section">
+                    <p className="brief-section-eyebrow">{section.eyebrow}</p>
+                    <h2 className="brief-section-heading">{section.heading}</h2>
+                    <p>{section.body}</p>
+                  </section>
+                ))}
+
+                <section className="brief-editor-section">
+                  <p className="brief-section-eyebrow">Keep watching</p>
+                  <h2 className="brief-section-heading">Signals to keep in view next.</h2>
+                  <ul className="brief-watchlist-list">
+                    {todaysBrief.watchlist.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </section>
+
+                <p>{todaysBrief.closing}</p>
+              </div>
+            </section>
+
+            <p className="brief-footer-note">Open the profile menu anytime to manage links, delivery time, or sign out.</p>
+          </article>
+        </section>
+
+        {isBriefSettingsOpen ? (
+          <div className="brief-settings-overlay">
+            <div className="brief-settings-modal" ref={briefSettingsRef}>
+              <div className="brief-settings-header">
+                <div>
+                  <p className="section-kicker brief-kicker">Brief settings</p>
+                  <h2 className="brief-settings-title">Manage saved links and your delivery time.</h2>
+                </div>
+                <button
+                  type="button"
+                  className="brief-settings-close"
+                  onClick={() => setIsBriefSettingsOpen(false)}
+                  aria-label="Close brief settings"
+                >
+                  ×
+                </button>
+              </div>
+
+              <form className="brief-settings-form" onSubmit={handleAddLink}>
+                <label className="brief-field">
+                  <span>Add a link</span>
+                  <div className="brief-link-input-row">
+                    <input
+                      type="url"
+                      placeholder="https://example.com/article"
+                      value={newLink}
+                      onChange={(event) => setNewLink(event.target.value)}
+                    />
+                    <button type="submit" className="brief-submit-button">
+                      Save
+                    </button>
+                  </div>
+                </label>
+
+                <label className="brief-field">
+                  <span>Email time</span>
+                  <input
+                    type="time"
+                    value={briefDeliveryTime}
+                    onChange={(event) => setBriefDeliveryTime(event.target.value)}
+                  />
+                </label>
+              </form>
+
+              <div className="brief-settings-links">
+                <p className="brief-section-eyebrow">Current links</p>
+                {hasSavedLinks ? (
+                  <div className="brief-settings-link-list">
+                    {savedLinks.map((link) => (
+                      <div key={link} className="brief-settings-link-item">
+                        <span>{link}</span>
+                        <button type="button" onClick={() => handleRemoveLink(link)}>
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="brief-empty-state">Nothing added yet, add your links and get a brief.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </main>
+    )
   }
 
   return (
@@ -411,7 +748,7 @@ function App() {
             <header className="topbar">
               <div className="brand-lockup">
                 <div className="brand-mark"></div>
-                <span>Chronos</span>
+                <span>ChronoBrief</span>
               </div>
 
               <nav className="topnav">
@@ -485,7 +822,7 @@ function App() {
         <section id="features" className="content-section">
           <div className="section-heading split-heading">
             <div>
-              <p className="section-kicker">Why Chronos</p>
+              <p className="section-kicker">Why ChronoBrief</p>
               <h2 className="workflow-headline">
                 Start the day with signal,
                 <br />
@@ -549,12 +886,12 @@ function App() {
               </div>
             </div>
 
-            <div className="terminal-shell" aria-label="Chronos workflow activity">
+            <div className="terminal-shell" aria-label="ChronoBrief workflow activity">
               <div className="terminal-topbar">
                 <span className="terminal-dot terminal-dot-red"></span>
                 <span className="terminal-dot terminal-dot-yellow"></span>
                 <span className="terminal-dot terminal-dot-green"></span>
-                <span className="terminal-title">chronos-agent</span>
+                <span className="terminal-title">chronobrief-agent</span>
               </div>
 
               <div className="terminal-body">
@@ -618,7 +955,7 @@ function App() {
         <section id="faq" className="content-section faq-section">
           <div className="faq-copy-column">
             <p className="section-kicker">Questions</p>
-            <h2 className="workflow-headline faq-headline">Ask Chronos what happens after you save the links.</h2>
+            <h2 className="workflow-headline faq-headline">Ask ChronoBrief what happens after you save the links.</h2>
           </div>
 
           <div className="faq-console">
@@ -628,13 +965,13 @@ function App() {
                 <span className="terminal-dot terminal-dot-yellow"></span>
                 <span className="terminal-dot terminal-dot-green"></span>
               </div>
-              <span className="faq-console-title">Chronos chat</span>
+              <span className="faq-console-title">ChronoBrief chat</span>
               <span className="faq-console-status">Agent online</span>
             </div>
 
             <div className="faq-chat-thread">
               <article className="faq-message faq-message-agent">
-                <span className="faq-message-label">Chronos</span>
+                <span className="faq-message-label">ChronoBrief</span>
                 <p>Pick a prompt below and I&apos;ll show you how the daily brief works.</p>
               </article>
 
@@ -644,7 +981,7 @@ function App() {
               </article>
 
               <article className="faq-message faq-message-agent faq-message-answer">
-                <span className="faq-message-label">Chronos</span>
+                <span className="faq-message-label">ChronoBrief</span>
                 <p>
                   {typedFaqAnswer}
                   {typedFaqAnswer.length < faqs[activeFaqIndex].answer.length ? (

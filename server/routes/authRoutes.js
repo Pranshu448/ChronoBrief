@@ -31,7 +31,7 @@ router.get(
       );
 
       return res.redirect(
-        `${frontendUrl}/dashboard?token=${encodeURIComponent(token)}`
+        `${frontendUrl}/brief?token=${encodeURIComponent(token)}`
       );
     } catch (err) {
       console.error("JWT Error:", err);

@@ -11,13 +11,18 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       let user = await User.findOne({ googleId: profile.id });
+      const avatarUrl = profile.photos?.[0]?.value || "";
 
       if (!user) {
         user = await User.create({
           googleId: profile.id,
           email: profile.emails[0].value,
-          name: profile.displayName
+          name: profile.displayName,
+          avatarUrl
         });
+      } else if (avatarUrl && user.avatarUrl !== avatarUrl) {
+        user.avatarUrl = avatarUrl;
+        await user.save();
       }
 
       return done(null, user);

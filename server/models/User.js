@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
+  },
+  avatarUrl: {
+    type: String,
+    trim: true,
+    default: ""
   }
 });
 

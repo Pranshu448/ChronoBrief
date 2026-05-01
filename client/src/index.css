@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
   --text: #d7dbe7;
   --text-h: #f2f4f8;
@@ -5,8 +7,8 @@
   --bg: #000000;
   --border: rgba(255, 255, 255, 0.08);
   --accent: #9d87ff;
-  --sans: 'Sora', 'Segoe UI', sans-serif;
-  --heading: 'Fraunces', Georgia, serif;
+  --sans: 'Inter', 'Segoe UI', sans-serif;
+  --heading: 'Inter', 'Segoe UI', sans-serif;
   --mono: 'JetBrains Mono', 'Fira Code', monospace;
 
   font: 18px/1.5 var(--sans);
@@ -42,21 +44,21 @@ body {
 h1,
 h2 {
   font-family: var(--heading);
-  font-weight: 600;
+  font-weight: 300;
   color: var(--text-h);
 }
 
 h1 {
   margin: 0;
   font-size: clamp(3rem, 6vw, 5.3rem);
-  line-height: 0.94;
-  letter-spacing: -0.05em;
+  line-height: 0.92;
+  letter-spacing: -0.065em;
 }
 
 h2 {
   font-size: clamp(1.6rem, 3vw, 2.2rem);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
+  line-height: 1;
+  letter-spacing: -0.045em;
   margin: 0;
 }
 
